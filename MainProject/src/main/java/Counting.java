@@ -28,7 +28,7 @@ public class Counting {
 	        while (!operators.isEmpty()) {
 	            output.append(operators.pop()).append(" ");
 	        }
-            System.out.println(output.toString());
+            // System.out.println(output.toString());
 	        return output.toString().trim();
 	    }
 	public static double calculate_OPZ(String opz) {

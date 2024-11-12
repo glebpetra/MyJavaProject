@@ -1,9 +1,13 @@
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.security.InvalidKeyException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Base64;
@@ -16,10 +20,14 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 public class Decryption {
-
+	private static final String ALGORITHM = "AES";
+    private static final String TRANSFORMATION = "AES/CBC/PKCS5Padding";
+    private static final int IV_SIZE = 16;
+    
 	public static String decryption(String password, String filename) throws FileNotFoundException, 
 	IOException, NoSuchAlgorithmException, NoSuchPaddingException, 
 	InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
@@ -69,5 +77,42 @@ public class Decryption {
             e.printStackTrace();
         }
         return newFilename;
+	}
+	
+
+	public static String decrypt(String password, String in) throws Exception {
+		SecretKey secretKey = generateKey(password);
+		Cipher cipher = Cipher.getInstance(TRANSFORMATION);
+        File inputFile = new File(in);
+        String out = "Decoded"+in;
+        File outputFile = new File(out);
+        
+		try (FileInputStream inputStream = new FileInputStream(inputFile);
+			 FileOutputStream outputStream = new FileOutputStream(outputFile)) {
+			byte[] iv = new byte[IV_SIZE];
+			inputStream.read(iv);
+			IvParameterSpec ivParams = new IvParameterSpec(iv);
+			cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParams);
+
+			byte[] buffer = new byte[1024];
+			int bytesRead;
+			while ((bytesRead = inputStream.read(buffer)) != -1) {
+				byte[] output = cipher.update(buffer, 0, bytesRead);
+				if (output != null) {
+					outputStream.write(output);
+				}
+			}
+			byte[] outputBytes = cipher.doFinal();
+			if (outputBytes != null) {
+				outputStream.write(outputBytes);
+			}
+		}
+		return out;
+	}
+
+	private static SecretKey generateKey(String password) throws NoSuchAlgorithmException {
+		MessageDigest digest = MessageDigest.getInstance("SHA-256");
+		byte[] keyBytes = Arrays.copyOf(digest.digest(password.getBytes()), 16);
+		return new SecretKeySpec(keyBytes, ALGORITHM);
 	}
 }
