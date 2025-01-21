@@ -2,38 +2,47 @@
 #include <vector>
 #include <stdexcept>
 
-std::vector<long long> fibonacci(size_t n) {
-    if (n == 0)
+long long addition(long long first_sum, long long second_sum) {
+    long long sum = first_sum + second_sum;
+    if (sum < first_sum || sum < second_sum) {
+        throw std::overflow_error("Fibonacci number exceeds maximum value");
+    }
+    return sum;
+}
+
+std::vector<long long> fibonacci(long long size) {
+    if (size == 0)
         return {};
-    if (n < 0)
+    if (size < 0)
         throw std::invalid_argument("n must be non-negative");
 
     std::vector<long long> fib_numbers;
-    fib_numbers.reserve(n);
+    fib_numbers.reserve(size);
 
     fib_numbers.push_back(0);
-    if (n == 1) 
+    if (size == 1) 
         return fib_numbers;
     fib_numbers.push_back(1);
-    if (n == 2) 
+    if (size == 2)
         return fib_numbers;
 
-    long long a = 0;
-    long long b = 1;
-    long long next_fib;
+    long long first_sum = 0;
+    long long sec_sum = 1;
+    long long next_fib = 0;
 
-    for (size_t i = 2; i < n; ++i) {
-        next_fib = a + b;
-        if (next_fib < a || next_fib < b) {
+    for (size_t i = 2; i < size; ++i) {
+        next_fib = addition(first_sum, sec_sum);
+        /*if (next_fib < size || next_fib < size) {
             throw std::overflow_error("Fibonacci number exceeds maximum value");
-        }
+        }*/
+        first_sum = sec_sum;
+        sec_sum = next_fib;
         fib_numbers.push_back(next_fib);
-        a = b;
-        b = next_fib;
     }
 
     return fib_numbers;
 }
+
 
 int main() {
     int n = 0;
